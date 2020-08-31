@@ -1,0 +1,49 @@
+# by default, the Ghost image will use SQLite (and thus requires no separate database container)
+# we have used MySQL here merely for demonstration purposes (especially environment-variable-based configuration)
+
+version: "3.1"
+
+services:
+  ghost:
+    image: ghost:3-alpine
+    restart: always
+    ports:
+      - 8989:2368
+    environment:
+      # see https://docs.ghost.org/docs/config#section-running-ghost-with-config-env-variables
+      database__client: mysql
+      database__connection__host: db
+      database__connection__user: root
+      database__connection__password: 921025ldh
+      database__connection__database: ghost
+      # this url value is just an example, and is likely wrong for your environment!
+      url: http://blog.dadigua.win
+    volumes:
+      - /root/data/ghost:/var/lib/ghost/content
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+
+  db:
+    image: mysql:5.7
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: 921025ldh
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+  
+  visualizer:
+    image: dockersamples/visualizer
+    ports:
+      - "8888:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
